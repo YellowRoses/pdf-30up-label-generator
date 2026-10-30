@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build / render artifacts (do NOT commit generated labels)
+pdfpng/
+*.png
+STYX_label_word_docs/
+*.docx
+
+# OS
+Thumbs.db
+.DS_Store
