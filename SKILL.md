@@ -15,8 +15,9 @@ description: Batch-convert a folder of PDFs into printable 30-up (Avery 5160 sty
 2. **Inject** each PNG into ALL cells of the template → `scripts/build_labels.py`.
    The script copies the template per PDF, embeds the PNG once, and inserts an inline `<w:drawing>` into every `<w:tc>` it finds — so it works whether the template is a single 30-cell table **or several tables (incl. floating text-box tables)**.
 3. Output: one `.docx` per source PDF in the output folder, named after the PDF.
-4. **(Optional) Convert to PDF** (`scripts/docx_to_pdf.py`) — turn the finished Word sheets into print-ready PDFs.
-   Backends (auto): **LibreOffice** (headless, portable) → **Microsoft Word COM** (Windows, needs `pywin32` + Word). Ensure one is installed before running.
+4. **(Optional) Convert to PDF** — two paths, pick by environment:
+   - **No Word/LibreOffice available (or PDFs are all you need)** → `scripts/png_to_pdf.py`: rebuilds the 30-up PDF straight from the step-1 PNGs, zero dependencies (pure stdlib), byte-compatible geometry with the Word sheet. Accepts flat `<base>.png`, numbered `<NN>/page-0001.png`, or named `<base>/page-0001.png` PNG layouts. Supports `--limit N` for smoke tests and `--cols/--rows/--img-w-in/--img-h-in` overrides.
+   - **Word sheets needed too** → `scripts/docx_to_pdf.py`. Backends (auto): **LibreOffice** (headless, portable) → **Microsoft Word COM** (Windows, needs `pywin32` + Word). Ensure one is installed before running.
 
 ## Critical lessons (learned the hard way)
 - ❌ **Do NOT build a new table** (e.g. `python-docx add_table(10,3)`) to fake the 30-up layout. It will not match the template's exact geometry and the cells will *look enlarged*. Always **inject into the template's existing cells**.
@@ -43,6 +44,12 @@ Convert the finished Word sheets to PDF:
 python scripts/docx_to_pdf.py --src STYX_label_word_docs
 # or a single file
 python scripts/docx_to_pdf.py --file STYX_label_word_docs/AP15500\ v2.docx --out pdf_out
+```
+
+Or skip Word entirely and build the PDFs straight from the PNGs (zero dependencies):
+```bash
+python scripts/png_to_pdf.py --src "STYX (new SKU code) Label" --png-dir pdfpng --out pdf_out
+python scripts/png_to_pdf.py --src labels --png-dir pdfpng --out pdf_out --limit 2  # smoke test
 ```
 
 ## Validate

@@ -10,6 +10,7 @@
 - **适配任意模板结构**：只要模板里是 30 个 `<w:tc>` 格子（单个 10×3 表，或 3 个 10×1 表——包括藏在浮动文本框里的），脚本都能把图注入每一个。
 - **图片拉伸铺满格子**：图片显示尺寸可配（默认 `2.602″ × 0.992″`，对应 2.625″×1.0″ 的格子）。
 - **每个文档只内嵌一次图**：PNG 在 `word/media/` 只存一份，30 个格子共用同一张图，文件小巧。
+- **零依赖直出 PDF**：没有 Word/LibreOffice 的环境里，也能从渲染图直接生成几何一致的 30-up PDF（`scripts/png_to_pdf.py`，纯 Python 标准库）。
 
 ## 安装
 
@@ -47,9 +48,9 @@ python scripts/build_labels.py \
 python examples/make_sample_template.py demo_template.docx
 ```
 
-### 转成 PDF（可选）
+### 转成 PDF（两条路径，二选一）
 
-把生成的 Word 标签 sheet 再转成可打印的 PDF：
+**路径 A — 经 Word sheet 转换**（适合同时需要 `.docx` 的场景）：
 
 ```bash
 python scripts/docx_to_pdf.py --src STYX_label_word_docs          # 整文件夹
@@ -59,6 +60,14 @@ python scripts/docx_to_pdf.py --file STYX_label_word_docs/AP15500\ v2.docx --out
 转换后端（自动选择，可用 `--backend` 强制）：
 - **LibreOffice**（默认优先）：跨平台、可无头运行，适合 Linux 服务器；从 https://libreoffice.org 安装。
 - **Microsoft Word COM**（Windows）：需 `pip install pywin32` 且本机装有 Word。
+
+**路径 B — 零依赖直接出 PDF**（无需 Word/LibreOffice/PyMuPDF，纯标准库）：
+
+```bash
+python scripts/png_to_pdf.py --src "STYX (new SKU code) Label" --png-dir pdfpng --out pdf_out
+```
+
+直接从第 1 步渲染出的 PNG 重建与 Word sheet 几何一致的 30-up PDF（Letter、3×10 网格、虚线格子边框、图片每份 PDF 只内嵌一次）。PNG 目录三种布局都认：`<base>.png`（本仓库 `render_pdfs.py` 的输出）、`<编号>/page-0001.png`（pdf-cli 批量输出）、`<base>/page-0001.png`。可用 `--limit 2` 做冒烟测试；格子数、图片尺寸可用 `--cols/--rows/--img-w-in/--img-h-in` 调整。
 
 ## ⚠️ 两个踩坑点（重要）
 
@@ -84,7 +93,8 @@ pdf-30up-label-skill/
 ├── scripts/
 │   ├── render_pdfs.py        # PDF -> PNG（多后端）
 │   ├── build_labels.py       # PNG -> 注入模板 30 格
-│   └── docx_to_pdf.py        # .docx -> PDF（LibreOffice / Word COM）
+│   ├── docx_to_pdf.py        # .docx -> PDF（LibreOffice / Word COM）
+│   └── png_to_pdf.py         # PNG -> 30-up PDF（零依赖，路径 B）
 └── examples/
     └── make_sample_template.py
 ```
