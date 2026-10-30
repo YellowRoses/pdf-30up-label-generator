@@ -47,6 +47,19 @@ python scripts/build_labels.py \
 python examples/make_sample_template.py demo_template.docx
 ```
 
+### 转成 PDF（可选）
+
+把生成的 Word 标签 sheet 再转成可打印的 PDF：
+
+```bash
+python scripts/docx_to_pdf.py --src STYX_label_word_docs          # 整文件夹
+python scripts/docx_to_pdf.py --file STYX_label_word_docs/AP15500\ v2.docx --out pdf_out
+```
+
+转换后端（自动选择，可用 `--backend` 强制）：
+- **LibreOffice**（默认优先）：跨平台、可无头运行，适合 Linux 服务器；从 https://libreoffice.org 安装。
+- **Microsoft Word COM**（Windows）：需 `pip install pywin32` 且本机装有 Word。
+
 ## ⚠️ 两个踩坑点（重要）
 
 1. **不要新建表格去"假装"30-up 布局**（例如 `python-docx add_table(10,3)`）。那样和原模板几何对不上，格子会看起来被"扩大"。正确做法是**往模板已有的格子里注入图片**。
@@ -70,7 +83,8 @@ pdf-30up-label-skill/
 ├── LICENSE
 ├── scripts/
 │   ├── render_pdfs.py        # PDF -> PNG（多后端）
-│   └── build_labels.py       # PNG -> 注入模板 30 格
+│   ├── build_labels.py       # PNG -> 注入模板 30 格
+│   └── docx_to_pdf.py        # .docx -> PDF（LibreOffice / Word COM）
 └── examples/
     └── make_sample_template.py
 ```
