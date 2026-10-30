@@ -28,21 +28,29 @@ pip install pdf2image      # 需要额外安装 poppler
 
 ## 使用
 
+**运行前先确认三件事**（AI 执行本技能时应向使用者询问，不要假设默认值）：
+
+1. **源 PDF 目录** —— 标签 PDF 放在哪；
+2. **Word 模版** —— 使用者自己的 `.docx`，或直接用内置的 `examples/amazon_fnsku_label_template_30up.docx`（真实 30-up、Avery 5160 规格，开箱即用）。**排版严格遵循模版**：脚本只往模版既有格子里注入图片，绝不自建网格；
+3. **标签显示尺寸** —— 宽 × 高，**厘米或英寸都可以**，脚本只认英寸（cm ÷ 2.54）。参考值：亚马逊 FNSKU 标签显示尺寸为 **6.61 cm × 2.52 cm**（= `2.602″ × 0.992″`）。
+
 ```bash
 # 1) 把每个 PDF 首页渲染成 PNG（按 PDF 原名命名）
-python scripts/render_pdfs.py --src "STYX (new SKU code) Label" --out pdfpng --dpi 600 \
+python scripts/render_pdfs.py --src "<源 PDF 目录>" --out pdfpng --dpi 600 \
     --pdf-cli "C:/.../workbuddy-pdf.exe"
 
-# 2) 把 PNG 注入模板的 30 个格子，每个 PDF 生成一个 .docx
+# 2) 把 PNG 注入模版的 30 个格子，每个 PDF 生成一个 .docx
 python scripts/build_labels.py \
-    --template amazon_fnsku_label_template_30up.docx \
-    --src "STYX (new SKU code) Label" --png-dir pdfpng \
+    --template examples/amazon_fnsku_label_template_30up.docx \
+    --src "<源 PDF 目录>" --png-dir pdfpng \
     --out STYX_label_word_docs --imgw-in 2.602 --imgh-in 0.992
 ```
 
 输出目录 `STYX_label_word_docs/` 下每个 `.docx` 即一张 30-up 标签 sheet。
 
-### 没有模板？生成演示模板
+### 没有自己的模版？
+
+直接用内置的 `examples/amazon_fnsku_label_template_30up.docx`（真实 30-up 模版，非玩具demo）。也可以生成一个合成演示模版：
 
 ```bash
 python examples/make_sample_template.py demo_template.docx
@@ -64,7 +72,8 @@ python scripts/docx_to_pdf.py --file STYX_label_word_docs/AP15500\ v2.docx --out
 **路径 B — 零依赖直接出 PDF**（无需 Word/LibreOffice/PyMuPDF，纯标准库）：
 
 ```bash
-python scripts/png_to_pdf.py --src "STYX (new SKU code) Label" --png-dir pdfpng --out pdf_out
+python scripts/png_to_pdf.py --src "<源 PDF 目录>" --png-dir pdfpng --out pdf_out \
+    --img-w-in 2.602 --img-h-in 0.992
 ```
 
 直接从第 1 步渲染出的 PNG 重建与 Word sheet 几何一致的 30-up PDF（Letter、3×10 网格、虚线格子边框、图片每份 PDF 只内嵌一次）。PNG 目录三种布局都认：`<base>.png`（本仓库 `render_pdfs.py` 的输出）、`<编号>/page-0001.png`（pdf-cli 批量输出）、`<base>/page-0001.png`。可用 `--limit 2` 做冒烟测试；格子数、图片尺寸可用 `--cols/--rows/--img-w-in/--img-h-in` 调整。
@@ -96,5 +105,6 @@ pdf-30up-label-skill/
 │   ├── docx_to_pdf.py        # .docx -> PDF（LibreOffice / Word COM）
 │   └── png_to_pdf.py         # PNG -> 30-up PDF（零依赖，路径 B）
 └── examples/
-    └── make_sample_template.py
+    ├── amazon_fnsku_label_template_30up.docx   # 内置 30-up Word 模版（开箱即用）
+    └── make_sample_template.py                 # 合成演示模版生成器
 ```

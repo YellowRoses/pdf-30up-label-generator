@@ -9,6 +9,7 @@ pdfpng/
 *.png
 STYX_label_word_docs/
 *.docx
+!examples/*.docx
 
 # OS
 Thumbs.db
